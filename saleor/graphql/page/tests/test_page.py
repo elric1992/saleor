@@ -1864,10 +1864,10 @@ def test_bulk_unpublish(staff_api_client, page_list, permission_manage_pages):
 @pytest.mark.parametrize(
     "page_filter, count",
     [
-        ({"search": "Page1"}, 1),
-        ({"search": "slug_page_2"}, 1),
+        ({"search": "Page1"}, 2),
+        ({"search": "about"}, 1),
         ({"search": "test"}, 1),
-        ({"search": "slug_"}, 3),
+        ({"search": "slug"}, 3),
         ({"search": "Page"}, 2),
     ],
 )

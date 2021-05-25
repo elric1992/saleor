@@ -1,23 +1,35 @@
 import django_filters
+from django.db.models import Q
 from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...page.models import Page
 from ..core.filters import MetadataFilterBase
 from ..core.types import FilterInputObjectType
-from ..utils.filters import filter_by_query_param
+from ..utils import resolve_global_ids_to_primary_keys
+from .types import PageType
 
 
 def filter_page_search(qs, _, value):
-    page_fields = ["content", "slug", "title"]
-    qs = filter_by_query_param(qs, value, page_fields)
-    return qs
+    if not value:
+        return qs
+    return qs.filter(
+        Q(title__trigram_similar=value)
+        | Q(slug__trigram_similar=value)
+        | Q(content__icontains=value)
+    )
+
+
+def filter_page_page_types(qs, _, value):
+    if not value:
+        return qs
+    _, page_types_pks = resolve_global_ids_to_primary_keys(value, PageType)
+    return qs.filter(page_type_id__in=page_types_pks)
 
 
 def filter_page_type_search(qs, _, value):
-    fields = ["name", "slug"]
-    if value:
-        qs = filter_by_query_param(qs, value, fields)
-    return qs
+    if not value:
+        return qs
+    return qs.filter(Q(name__trigram_similar=value) | Q(slug__trigram_similar=value))
 
 
 class PageFilter(MetadataFilterBase):
